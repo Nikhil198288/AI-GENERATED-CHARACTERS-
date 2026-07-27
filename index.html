@@ -37,6 +37,9 @@ backdrop-filter:blur(10px);
 position:sticky;
 top:0;
 z-index:10;
+align-items:center;
+flex-wrap:wrap;
+gap:20px;
 }
 
 .logo{
@@ -51,10 +54,12 @@ transition:.3s;
 text-shadow:0 0 10px #00e5ff;
 }
 
-nav ul{
+.nav-menu{
 display:flex;
 gap:25px;
 list-style:none;
+align-items:center;
+flex-wrap:wrap;
 }
 
 nav a{
@@ -67,6 +72,32 @@ cursor:pointer;
 nav a:hover{
 color:#00e5ff;
 text-shadow:0 0 10px #00e5ff;
+}
+
+.nav-buttons{
+display:flex;
+gap:15px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.nav-btn{
+padding:10px 20px;
+background:#00e5ff;
+color:#050816;
+border:none;
+border-radius:20px;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+text-decoration:none;
+font-size:14px;
+}
+
+.nav-btn:hover{
+background:#00d9f2;
+transform:scale(1.05);
+box-shadow:0 0 20px rgba(0, 229, 255, 0.5);
 }
 
 .hero{
@@ -329,9 +360,15 @@ flex-direction: column;
 gap: 15px;
 }
 
-nav ul {
+.nav-menu {
 flex-direction: column;
 gap: 10px;
+width:100%;
+}
+
+.nav-buttons{
+width:100%;
+justify-content:center;
 }
 
 .filters {
@@ -340,6 +377,11 @@ flex-direction: column;
 
 .filter-btn {
 width: 100%;
+}
+
+.nav-btn{
+width:100%;
+text-align:center;
 }
 }
 </style>
@@ -351,14 +393,19 @@ width: 100%;
 <canvas id="bg"></canvas>
 
 <nav>
-<div class="logo">🚀 AI Character Hub</div>
+<div class="logo" onclick="scrollToSection('hero')">🚀 AI Character Hub</div>
 
-<ul>
+<ul class="nav-menu">
 <li><a onclick="scrollToSection('hero')">Home</a></li>
 <li><a onclick="scrollToSection('characters')">Characters</a></li>
 <li><a onclick="scrollToSection('stats')">Stats</a></li>
 <li><a onclick="scrollToSection('footer')">Contact</a></li>
 </ul>
+
+<div class="nav-buttons">
+<a href="editor.html" class="nav-btn">⚡ Editor</a>
+<a href="upload.html" class="nav-btn">🖼️ Upload</a>
+</div>
 </nav>
 
 <section class="hero" id="hero">
