@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Character Images</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #050816;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #00e5ff;
+            margin-bottom: 10px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header p {
+            color: #cfd8dc;
+            font-size: 16px;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00e5ff;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            text-shadow: 0 0 10px #00e5ff;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .upload-section h2 {
+            color: #00e5ff;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .upload-area {
+            border: 3px dashed #00e5ff;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .upload-area:hover {
+            background: rgba(0, 229, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            background: rgba(0, 229, 255, 0.2);
+            border-color: #00d9f2;
+            transform: scale(1.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #cfd8dc;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 12px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .form-group {
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00e5ff;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .preview-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .preview-section h2 {
+            color: #00e5ff;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .preview-image-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 229, 255, 0.05);
+            border: 2px solid #00e5ff;
+            margin-bottom: 20px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-placeholder {
+            color: #666;
+            font-size: 48px;
+        }
+
+        .preview-info {
+            background: rgba(0, 229, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .preview-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+            font-size: 13px;
+        }
+
+        .preview-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .preview-info-label {
+            color: #00e5ff;
+            font-weight: bold;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: #00e5ff;
+            color: #050816;
+        }
+
+        .btn-primary:hover {
+            background: #00d9f2;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+
+        .btn-primary:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 229, 255, 0.2);
+            color: #00e5ff;
+            border: 2px solid #00e5ff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 229, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .gallery-section {
+            margin-top: 50px;
+        }
+
+        .gallery-section h2 {
+            color: #00e5ff;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 229, 255, 0.3);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .gallery-info {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-name {
+            color: #00e5ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .gallery-category {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .gallery-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .gallery-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(0, 229, 255, 0.2);
+            border: 1px solid #00e5ff;
+            color: #00e5ff;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .gallery-btn:hover {
+            background: rgba(0, 229, 255, 0.4);
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 127, 0.2);
+            border: 2px solid #00ff7f;
+            color: #00ff7f;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00e5ff, #00d9f2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #050816;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid #00e5ff;
+        }
+
+        .modal-content img {
+            width: 100%;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            color: #00e5ff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #00d9f2;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: 100%;
+            }
+        }
+
+        .file-size-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .image-dimensions {
+            font-size: 12px;
+            color: #00e5ff;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="container">
+    <a class="back-link" onclick="window.history.back()">← Back</a>
+
+    <div class="header">
+        <h1>🖼️ Upload Character Images</h1>
+        <p>Upload and manage images for your AI-generated characters</p>
+    </div>
+
+    <div class="content">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2>Upload Image</h2>
+            
+            <div class="success-message" id="successMessage">✓ Image uploaded successfully!</div>
+            <div class="error-message" id="errorMessage">✗ Error uploading image</div>
+
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Click to upload or drag & drop</div>
+                <div class="upload-subtext">PNG, JPG, GIF up to 10MB</div>
+            </div>
+
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Character Name</label>
+                <input type="text" id="charName" placeholder="Enter character name">
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select id="charCategory">
+                    <option value="fantasy">Fantasy</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="sci-fi">Sci-Fi</option>
+                    <option value="survival">Survival</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="charDescription" placeholder="Describe your character..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="uploadBtn" onclick="uploadImage()" disabled>
+                    📤 Upload Character
+                </button>
+                <button class="btn btn-secondary" onclick="resetUploadForm()">🔄 Reset</button>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section">
+            <h2>Preview</h2>
+            <div class="preview-image-container">
+                <div class="preview-placeholder" id="previewPlaceholder">📷</div>
+                <img id="previewImage" class="preview-image" style="display: none;">
+            </div>
+            
+            <div class="preview-info" id="previewInfo" style="display: none;">
+                <div class="preview-info-item">
+                    <span class="preview-info-label">File Size:</span>
+                    <span id="infoFileSize">-</span>
+                </div>
+                <div class="preview-info-item">
+                    <span class="preview-info-label">Dimensions:</span>
+                    <span id="infoDimensions">-</span>
+                </div>
+                <div class="preview-info-item">
+                    <span class="preview-info-label">Type:</span>
+                    <span id="infoType">-</span>
+                </div>
+            </div>
+
+            <p style="color: #999; font-size: 12px; margin-top: 15px;">
+                ℹ️ Selected image will appear here with details
+            </p>
+        </div>
+    </div>
+
+    <!-- Gallery Section -->
+    <div class="gallery-section">
+        <h2>📚 Your Uploaded Characters</h2>
+        <div class="gallery-grid" id="galleryGrid">
+            <div class="empty-message">No characters uploaded yet. Start by uploading your first character image!</div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <img id="modalImage" src="">
+        <div id="modalInfo"></div>
+    </div>
+</div>
+
+<script>
+    // Background animation
+    const canvas = document.getElementById("bg");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+
+    for (let i = 0; i < 150; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 3 + 1,
+            dx: (Math.random() - 0.5),
+            dy: (Math.random() - 0.5)
+        });
+    }
+
+    function animate() {
+        ctx.fillStyle = "#050816";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#00e5ff";
+
+        particles.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            p.x += p.dx;
+            p.y += p.dy;
+
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.onresize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    // Variables
+    let selectedFile = null;
+    let uploadedCharacters = [];
+
+    // Drag & Drop
+    const uploadArea = document.getElementById('uploadArea');
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            document.getElementById('fileInput').files = files;
+            handleFileSelect({ target: { files } });
+        }
+    });
+
+    // Handle File Selection
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file
+        if (!file.type.startsWith('image/')) {
+            showError('Please select an image file');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            showError('File size must be less than 10MB');
+            return;
+        }
+
+        selectedFile = file;
+        document.getElementById('uploadBtn').disabled = false;
+
+        // Read and display preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                displayPreview(e.target.result, file, img.width, img.height);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Display Preview
+    function displayPreview(src, file, width, height) {
+        const previewImage = document.getElementById('previewImage');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const previewInfo = document.getElementById('previewInfo');
+
+        previewImage.src = src;
+        previewImage.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+
+        document.getElementById('infoFileSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+        document.getElementById('infoDimensions').textContent = width + ' × ' + height + ' px';
+        document.getElementById('infoType').textContent = file.type;
+
+        previewInfo.style.display = 'block';
+    }
+
+    // Upload Image
+    function uploadImage() {
+        if (!selectedFile) {
+            showError('Please select an image');
+            return;
+        }
+
+        const name = document.getElementById('charName').value;
+        const category = document.getElementById('charCategory').value;
+        const description = document.getElementById('charDescription').value;
+
+        if (!name) {
+            showError('Please enter character name');
+            return;
+        }
+
+        // Show progress bar
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        progressBar.classList.add('show');
+        progressFill.style.width = '0%';
+
+        // Simulate upload progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress > 90) progress = 90;
+            progressFill.style.width = progress + '%';
+        }, 200);
+
+        // Create character object
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            clearInterval(interval);
+            progressFill.style.width = '100%';
+
+            const character = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                description: description,
+                image: e.target.result,
+                uploadedAt: new Date().toISOString()
+            };
+
+            // Save to localStorage
+            uploadedCharacters.push(character);
+            localStorage.setItem('uploadedCharacters', JSON.stringify(uploadedCharacters));
+
+            setTimeout(() => {
+                progressBar.classList.remove('show');
+                progressFill.style.width = '0%';
+                showSuccess('Character uploaded successfully!');
+                resetUploadForm();
+                renderGallery();
+            }, 500);
+        };
+        reader.readAsDataURL(selectedFile);
+    }
+
+    // Reset Form
+    function resetUploadForm() {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('charName').value = '';
+        document.getElementById('charDescription').value = '';
+        document.getElementById('charCategory').value = 'fantasy';
+        document.getElementById('uploadBtn').disabled = true;
+
+        const previewImage = document.getElementById('previewImage');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const previewInfo = document.getElementById('previewInfo');
+
+        previewImage.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+        previewInfo.style.display = 'none';
+
+        selectedFile = null;
+    }
+
+    // Render Gallery
+    function renderGallery() {
+        const galleryGrid = document.getElementById('galleryGrid');
+        
+        if (uploadedCharacters.length === 0) {
+            galleryGrid.innerHTML = '<div class="empty-message">No characters uploaded yet. Start by uploading your first character image!</div>';
+            return;
+        }
+
+        galleryGrid.innerHTML = uploadedCharacters.map((char, index) => `
+            <div class="gallery-item">
+                <img src="${char.image}" class="gallery-image" alt="${char.name}">
+                <div class="gallery-info">
+                    <div class="gallery-name">${char.name}</div>
+                    <div class="gallery-category">${char.category.toUpperCase()}</div>
+                    <div class="gallery-actions">
+                        <button class="gallery-btn" onclick="viewImage(${index})">👁️ View</button>
+                        <button class="gallery-btn" onclick="deleteCharacter(${index})">🗑️ Delete</button>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // View Image
+    function viewImage(index) {
+        const char = uploadedCharacters[index];
+        const modal = document.getElementById('imageModal');
+        document.getElementById('modalImage').src = char.image;
+        document.getElementById('modalInfo').innerHTML = `
+            <h3 style="color: #00e5ff; margin-bottom: 10px;">${char.name}</h3>
+            <p style="color: #cfd8dc; margin-bottom: 10px;">${char.description}</p>
+            <p style="color: #999; font-size: 12px;">Category: ${char.category.toUpperCase()}</p>
+            <p style="color: #999; font-size: 12px;">Uploaded: ${new Date(char.uploadedAt).toLocaleString()}</p>
+        `;
+        modal.classList.add('show');
+    }
+
+    // Close Modal
+    function closeModal() {
+        document.getElementById('imageModal').classList.remove('show');
+    }
+
+    // Delete Character
+    function deleteCharacter(index) {
+        if (confirm('Are you sure you want to delete this character?')) {
+            uploadedCharacters.splice(index, 1);
+            localStorage.setItem('uploadedCharacters', JSON.stringify(uploadedCharacters));
+            showSuccess('Character deleted!');
+            renderGallery();
+        }
+    }
+
+    // Show Messages
+    function showSuccess(message) {
+        const successMsg = document.getElementById('successMessage');
+        successMsg.textContent = '✓ ' + message;
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 3000);
+    }
+
+    function showError(message) {
+        const errorMsg = document.getElementById('errorMessage');
+        errorMsg.textContent = '✗ ' + message;
+        errorMsg.classList.add('show');
+        setTimeout(() => errorMsg.classList.remove('show'), 3000);
+    }
+
+    // Load from localStorage
+    function loadCharacters() {
+        const saved = localStorage.getItem('uploadedCharacters');
+        if (saved) {
+            uploadedCharacters = JSON.parse(saved);
+            renderGallery();
+        }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = (event) => {
+        const modal = document.getElementById('imageModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    // Initialize
+    loadCharacters();
+</script>
+
+</body>
+</html>
